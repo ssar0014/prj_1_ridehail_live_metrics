@@ -70,7 +70,7 @@ class RideDataGenerator:
                 {
                     "email": f"{user_model_schema['first_name']}.{user_model_schema['last_name']}@{self.faker.domain_name()}",
                     "customer_loyalty_status": random.choice(
-                        ["Bronze", "Silver", "Gold", "Platinum"]
+                        ["Bronze", "Silver", "Gold", "Platinum", "Diamond"]
                     ),
                     "total_rides": random.randint(1, 200),
                     "average_fare_amount": round(random.uniform(5.0, 100.0), 2),
