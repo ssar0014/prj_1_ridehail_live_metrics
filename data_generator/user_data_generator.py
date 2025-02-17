@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any
 from faker import Faker
 import mimesis
-from vehicle_data_generator import VehicleDataGenerator
+from data_generator.vehicle_data_generator import VehicleDataGenerator
 
 
 class UserDataGenerator:
