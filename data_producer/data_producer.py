@@ -1,4 +1,4 @@
-from datagen import RideDataGenerator
+from ..data_generator.user_data_generator import RideDataGenerator
 from kafka import KafkaProducer
 import json
 import time
