@@ -1,9 +1,19 @@
 from data_generator.user_data_generator import UserDataGenerator
 from kafka import KafkaProducer
+from kafka import KafkaAdminClient
+from kafka.admin import NewPartitions
 import json
 import time
 import random
 
+# Initialize Kafka Producer (outside the loop)
+producer = KafkaProducer(
+    bootstrap_servers=["localhost:9092"],
+    key_serializer=str.encode,  # Ensures key is in bytes
+    value_serializer=lambda v: json.dumps(v).encode("utf-8"),  # JSON encoding
+)
+
+# Initialize User Data Generator
 user_data_generator = UserDataGenerator()
 
 
@@ -15,18 +25,32 @@ def get_user_data(user_type, gender):
     return full_user
 
 
-def stream_data():
-    random_user_type = random.choice(["driver", "customer"])
-    random_gender_type = random.choice(["M", "F"])
-
-    result = get_user_data(user_type=random_user_type, gender=random_gender_type)
-
-    producer_obj = KafkaProducer(
-        bootstrap_servers=["localhost:9092"], max_block_ms=5000
-    )
-    producer_obj.send("ride_created", json.dumps(result).encode("utf-8"))
+def stream_data(topic, user_type, n_msg):
+    for x in range(n_msg):
+        random_gender_type = random.choice(["M", "F"])
+        user_data = get_user_data(user_type=user_type, gender=random_gender_type)
+        if user_type == "driver":
+            producer.send(topic=topic, key=user_type, value=user_data, partition=0)
+        else:
+            producer.send(topic=topic, key=user_type, value=user_data, partition=1)
+        print(f"Message {x+1}/{n_msg} - {user_type} sent to Kafka.")
+        time.sleep(5)
+    producer.flush()
+    print(f"✅ Sent {n_msg} messages to Kafka for user_type={user_type}")
     return True
 
 
+def create_kafka_partition(topic):
+    topic = topic
+    bootstrap_servers = "localhost:9092"
+
+    admin_client = KafkaAdminClient(bootstrap_servers=bootstrap_servers)
+    topic_partitions = {}
+    topic_partitions[topic] = NewPartitions(total_count=2)
+    admin_client.create_partitions(topic_partitions)
+
+
 if __name__ == "__main__":
-    print(stream_data())
+    table_name = "users_schema"
+    for user_type in ["driver", "customer"]:
+        stream_data(topic=table_name, user_type=user_type, n_msg=100)
