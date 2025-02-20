@@ -9,17 +9,16 @@ This is a work in progress, and I will be updating it as I make more of it.
 
 
 ### Stack already in use:
-1. Kafka/Zookeeper
+1. Kafka - KRaft Mode - 2 controllers, 3 brokers
 2. Python Data Generator
+3. Apache Druid
+4. Postgres - as the metadata store for Druid for streaming data
+5. Postgres - as the data warehouse for transactional/historical data
 
 ### Stack yet to be installed (Final Stack TBD):
-1. Postgres as the batch ingestion warehouse
-2. Apache Druid as the streaming ingestion warehouse
-3. Apache Iceberg as Open Table format
-4. MinIO as object storage
-5. DBT as the batch analytics engine
-6. Apache Flink as the streaming analytics engine
-7. Dagster for orchestrating the pipelines
-8. Apache Superset as the real time dashboard application
+1. Apache Flink as the streaming analytics engine
+2. DBT as the batch analytics engine
+3. Dagster for orchestrating the pipelines
+4. Apache Superset as the dashboard application
 
-Update: Fake data generator now also includes `Mimesis` for better control over schema-defined data
+Update: Fake data generator now also includes `Mimesis` in addition to `Faker` for better control over schema-defined data

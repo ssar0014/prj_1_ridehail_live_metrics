@@ -6,6 +6,7 @@ volumes:
   coordinator_var: {}
   router_var: {}
   druid_shared: {}
+  data_warehouse: {}
 
 services:
   ## KAFKA KRAFT SETUP
@@ -219,5 +220,22 @@ services:
         - druid_env
       networks:
         - ridehail_metrics
+
+    ## PostgreSQL Data Warehouse
+    postgres-dw:
+      container_name: postgres-dw
+      image: postgres:latest
+      ports:
+        - "5434:5434"
+      volumes:
+        - data_warehouse:/var/lib/postgresql/data
+      environment:
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_USER=admin
+        - POSTGRES_DB=ridehail_data_warehouse
+      networks:
+        - ridehail_metrics
+
+    #TODO: Apache Flink
 networks:
     ridehail_metrics:
