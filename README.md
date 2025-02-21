@@ -52,10 +52,12 @@ Update: Fake data generator now also includes `Mimesis` in addition to `Faker` f
 * Query via Trino to offload old data from Postgres.
 
 📌 _How Druid Ingests Data from Kafka_
+
 * Druid will consume data directly from Kafka topics.
 
 1️⃣ _Kafka → Druid Streaming Ingestion_
-Druid’s native Kafka ingestion will automatically consume topics like ride_events and keep recent ride data in memory for ultra-fast queries.
+
+* Druid’s native Kafka ingestion will automatically consume topics like ride_events and keep recent ride data in memory for ultra-fast queries.
 
 ```
 {
@@ -89,7 +91,8 @@ Druid’s native Kafka ingestion will automatically consume topics like ride_eve
 ```
 
 📌 _Querying Druid from Trino_
-Trino can federate queries between Postgres, Iceberg, and Druid:
+
+* Trino can federate queries between Postgres, Iceberg, and Druid:
 
 ```
 SELECT driver_id, COUNT(*) AS total_rides
