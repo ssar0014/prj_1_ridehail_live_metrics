@@ -13,7 +13,7 @@ def processed_data():
     data_dictionary = json.dumps(data_dictionary, indent=4)
     with open("data/result.json", "w") as fp:
         json.dump(data_dictionary, fp)
-    return f"{data_dictionary} file processing complete!"
+    return f"file processing complete!"
 
 
 defs = dg.Definitions(assets=[processed_data])
