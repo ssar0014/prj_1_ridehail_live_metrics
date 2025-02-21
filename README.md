@@ -182,6 +182,7 @@ GROUP BY driver_id;
 
 📌 **Summary**
 * Kafka -> Streaming data pipeline
+* Flink -> Stream processing for sending enriched streaming data to Druid
 * Druid	-> Fast OLAP queries on recent ride data
 * Postgres -> Transactional DB for structured historical data
 * MinIO + Iceberg -> Long-term batch storage for historical analytics
