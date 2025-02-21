@@ -226,7 +226,7 @@ services:
       container_name: postgres-dw
       image: postgres:latest
       ports:
-        - "5434:5434"
+        - "5434:5432"
       volumes:
         - data_warehouse:/var/lib/postgresql/data
       environment:
