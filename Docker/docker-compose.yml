@@ -131,7 +131,7 @@ services:
   coordinator:
     # In case you are using Apple Silicon ARM chips use the below image for Druid
     # image: ghcr.io/arm64-compat/apache/druid:31.0.1
-    image: apache/druid:latest
+    image: apache/druid:32.0.0
     container_name: coordinator
     volumes:
       - druid_shared:/opt/shared
@@ -151,7 +151,7 @@ services:
   broker:
     # In case you are using Apple Silicon ARM chips use the below image for Druid
     # image: ghcr.io/arm64-compat/apache/druid:31.0.1
-    image: apache/druid:latest
+    image: apache/druid:32.0.0
     container_name: broker
     volumes:
       - broker_var:/opt/druid/var
@@ -171,7 +171,7 @@ services:
   historical:
     # In case you are using Apple Silicon ARM chips use the below image for Druid
     # image: ghcr.io/arm64-compat/apache/druid:31.0.1
-    image: apache/druid:latest
+    image: apache/druid:32.0.0
     container_name: historical
     volumes:
       - druid_shared:/opt/shared
@@ -192,7 +192,7 @@ services:
   middlemanager:
     # In case you are using Apple Silicon ARM chips use the below image for Druid
     # image: ghcr.io/arm64-compat/apache/druid:31.0.1
-    image: apache/druid:latest
+    image: apache/druid:32.0.0
     container_name: middlemanager
     volumes:
       - druid_shared:/opt/shared
@@ -214,7 +214,7 @@ services:
   router:
     # In case you are using Apple Silicon ARM chips use the below image for Druid
     # image: ghcr.io/arm64-compat/apache/druid:31.0.1
-    image: apache/druid:latest
+    image: apache/druid:32.0.0
     container_name: router
     volumes:
       - router_var:/opt/druid/var
