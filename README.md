@@ -34,30 +34,84 @@ Update: Fake data generator now also includes `Mimesis` in addition to `Faker` f
     * `user_events`: User actions (e.g., `new_driver_signup`, `customer_rating_submission`).
     * `vehicle_events`: Vehicle availability updates.
 
-2. **Druid (Real-time OLAP for Recent Data)**
+2. **Flink Overview** 
 
-* Consumes Kafka topics (Streaming ingestion)
-* Stores recent data (last few weeks) in a real-time optimized OLAP store.
-* Supports fast, aggregated queries (e.g., “Total rides per city in the last 24 hours”).
-* Queries come from Trino or Superset.
+* Consume raw ride data from Kafka (`users`, `rides`, etc.).
+* Process & Enrich Data using Flink:
+* Add computed fields (e.g., trip duration, distance).
+* Filter or clean missing/invalid data.
+* Perform real-time aggregations (e.g., average ride cost per minute).
+* Sink the processed data back to Kafka which can send it to Druid or Icerberg (into MinIO via Trino).
 
-3. **Postgres (Historical Transactional Data)**
+_Setting Up the Flink Job_
 
-* Stores normalized, structured data for transactional queries.
-* Holds historical rides in a batch-processed dimensional model.
+* We'll use Flink's Kafka Source and Druid Sink to send enriched data into Druid.
 
-4. **MinIO + Iceberg (Long-Term Storage)**
+Install Required Dependencies
 
-* Stores older data (>30 days) as Parquet-backed Iceberg tables.
-* Query via Trino to offload old data from Postgres.
+```
+# Install required Flink connectors
+FLINK_HOME=/path/to/flink  # Update with your Flink installation path
 
-📌 _How Druid Ingests Data from Kafka_
+# Flink Kafka Connector
+wget https://repo1.maven.org/maven2/org/apache/flink/flink-connector-kafka/1.15.2/flink-connector-kafka-1.15.2.jar -P $FLINK_HOME/lib
+
+# Flink Druid Connector
+wget https://repo1.maven.org/maven2/org/apache/druid/extensions/contrib/druid-flink/0.23.0/druid-flink-0.23.0.jar -P $FLINK_HOME/lib
+```
+
+_Writing the Flink Job_
+
+* Create a Flink job (FlinkDruidPipeline.py for PyFlink).
+
+```
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.datastream.connectors.kafka import KafkaSource, KafkaOffsetsInitializer
+from pyflink.datastream.connectors.druid import DruidSink
+from pyflink.common.serialization import SimpleStringSchema
+import json
+
+def enrich_data(ride_json):
+    ride = json.loads(ride_json)
+    ride["trip_duration"] = ride["end_time"] - ride["start_time"]
+    ride["cost_per_km"] = ride["fare_amount"] / ride["distance"]
+    return json.dumps(ride)
+
+env = StreamExecutionEnvironment.get_execution_environment()
+
+# Kafka Source
+kafka_source = KafkaSource.builder() \
+    .set_bootstrap_servers("localhost:9092") \
+    .set_topics("rides") \
+    .set_starting_offsets(KafkaOffsetsInitializer.earliest()) \
+    .set_value_only_deserializer(SimpleStringSchema()) \
+    .build()
+
+# Read from Kafka
+ride_stream = env.from_source(kafka_source, watermark_strategy=None, source_name="Kafka Source")
+
+# Enrich Data
+enriched_stream = ride_stream.map(enrich_data)
+
+# Druid Sink
+druid_sink = DruidSink.builder() \
+    .set_druid_coordinator_url("http://localhost:8081") \
+    .set_data_source("ride_events") \
+    .build()
+
+# Write to Druid
+enriched_stream.sink_to(druid_sink)
+
+env.execute("Flink to Druid Pipeline")
+```
+
+📌 _Kafka → Flink → Druid Flow_
 
 * Druid will consume data directly from Kafka topics.
+    * Kafka Topic (rides) → Flink (enriches ride data) → Druid (aggregates & serves queries).
+    * Flink can also store enriched data in Kafka (enriched_rides) for further processing.
 
-1️⃣ _Kafka → Druid Streaming Ingestion_
-
-* Druid’s native Kafka ingestion will automatically consume topics like ride_events and keep recent ride data in memory for ultra-fast queries.
+* Once the pipeline is running, create a Druid ingestion spec (ride_events.json):
 
 ```
 {
@@ -65,30 +119,55 @@ Update: Fake data generator now also includes `Mimesis` in addition to `Faker` f
   "spec": {
     "dataSchema": {
       "dataSource": "ride_events",
-      "dimensionsSpec": {
-        "dimensions": ["ride_id", "driver_id", "customer_id", "status", "pickup_location", "dropoff_location"]
-      },
-      "timestampSpec": {
-        "column": "ride_timestamp",
-        "format": "iso"
-      }
-    },
-    "ioConfig": {
-      "type": "kafka",
-      "consumerProperties": {
-        "bootstrap.servers": "localhost:9092"
-      },
-      "topic": "ride_events",
-      "inputFormat": {
-        "type": "json"
+      "parser": {
+        "type": "string",
+        "parseSpec": {
+          "format": "json",
+          "timestampSpec": {
+            "column": "start_time",
+            "format": "iso"
+          },
+          "dimensionsSpec": {
+            "dimensions": ["ride_id", "driver_id", "customer_id"]
+          }
+        }
       }
     },
     "tuningConfig": {
       "type": "kafka"
+    },
+    "ioConfig": {
+      "topic": "ride_events",
+      "consumerProperties": {
+        "bootstrap.servers": "localhost:9092"
+      }
     }
   }
 }
 ```
+
+_Submit to Druid_
+
+```
+curl -X POST -H "Content-Type: application/json" -d @ride_events.json http://localhost:8081/druid/indexer
+```
+
+3. **Druid (Real-time OLAP for Recent Data)**
+
+* Consumes Kafka topics (Streaming ingestion)
+* Stores recent data (last few weeks) in a real-time optimized OLAP store.
+* Supports fast, aggregated queries (e.g., “Total rides per city in the last 24 hours”).
+* Queries come from Trino or Superset.
+
+4. **Postgres (Historical Transactional Data)**
+
+* Stores normalized, structured data for transactional queries.
+* Holds historical rides in a batch-processed dimensional model.
+
+5. **MinIO + Iceberg (Long-Term Storage)**
+
+* Stores older data (>30 days) as Parquet-backed Iceberg tables.
+* Query via Trino to offload old data from Postgres.
 
 📌 _Querying Druid from Trino_
 
