@@ -32,7 +32,6 @@ def stream_data(topic, user_type, n_msg):
         else:
             producer.send(topic=topic, key=user_type, value=user_data)
         print(f"Message {x+1}/{n_msg} - {user_type} sent to Kafka.")
-        time.sleep(5)
     producer.flush()
     print(f"✅ Sent {n_msg} messages to Kafka for user_type={user_type}")
     return True
@@ -41,4 +40,4 @@ def stream_data(topic, user_type, n_msg):
 if __name__ == "__main__":
     table_name = "users_schema"
     for user_type in ["driver", "customer"]:
-        stream_data(topic=table_name, user_type=user_type, n_msg=100)
+        stream_data(topic=table_name, user_type=user_type, n_msg=2000)

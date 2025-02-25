@@ -245,7 +245,43 @@ services:
       - POSTGRES_DB=ridehail_data_warehouse
     networks:
       - ridehail_metrics
-  #TODO: Apache Flink
+  
+  #Apache Flink
+  flink-jobmanager:
+    build:
+      context: ./pyflink_docker
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8081"
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+    command: jobmanager
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-broker-1
+      - kafka-broker-2
+      - kafka-broker-3
+    networks:
+      - ridehail_metrics
+
+  flink-taskmanager:
+    build:
+      context: ./pyflink_docker
+      dockerfile: Dockerfile
+    depends_on:
+      - flink-jobmanager
+    command: taskmanager
+    scale: 1
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 2
+    networks:
+      - ridehail_metrics
 networks:
   ridehail_metrics:
     driver: bridge
