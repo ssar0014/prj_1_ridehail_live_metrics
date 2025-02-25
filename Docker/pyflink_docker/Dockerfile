@@ -1,12 +1,12 @@
 # USE THIS FOR APPLE SILICON ELSE USE NORMAL
-#  FROM --platform=arm64 apache/flink:latest
+FROM --platform=arm64 apache/flink:latest
 
-FROM flink:latest
+# FROM flink:latest
 
 # Install Python
 RUN apt-get update -y && \
-apt-get install -y python3 python3-pip python3-dev && \
-rm -rf /var/lib/apt/lists/*
+    apt-get install -y python3 python3-pip python3-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # Ensure python command points to python3
 RUN ln -s /usr/bin/python3 /usr/bin/python
