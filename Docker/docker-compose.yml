@@ -280,6 +280,7 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         taskmanager.numberOfTaskSlots: 2
+        classloader.resolve-order: parent-first
     networks:
       - ridehail_metrics
 networks:

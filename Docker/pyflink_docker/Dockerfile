@@ -1,5 +1,5 @@
 # USE THIS FOR APPLE SILICON ELSE USE NORMAL
-FROM --platform=arm64 apache/flink:latest
+FROM flink:1.20.0
 
 # FROM flink:latest
 
@@ -30,7 +30,7 @@ WORKDIR /opt/flink
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY download_libs.sh .
-RUN chmod +x ./download_libs.sh && ./download_libs.sh
+# Copy JAR files into the lib directory
+COPY ./jars/ /opt/flink/lib/
 
 COPY ./jobs/ ./jobs
