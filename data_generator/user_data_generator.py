@@ -57,7 +57,7 @@ class UserDataGenerator:
             "user_rating": round(
                 3.5 + (random.betavariate(4, 1) * 1.5), 1
             ),  # Skewed right
-            "created_at": self.faker.date_time_this_year().isoformat(),
+            "created_at": self.faker.date_time_this_year().now().isoformat()[:-3],
             "is_active": random.choice([True, False]),
             "user_type": user_type,  # Use the provided user_type
             "user_schema_version": self.field("version"),
