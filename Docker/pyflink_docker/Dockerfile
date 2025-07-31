@@ -1,7 +1,8 @@
-# USE THIS FOR APPLE SILICON ELSE USE NORMAL
-FROM flink:1.20.0
+# USE THIS FOR APPLE SILICON
+# FROM flink:1.20.0
 
-# FROM flink:latest
+# USE THIS FOR LINUX/WINDOWS
+FROM flink:latest
 
 # Install Python
 RUN apt-get update -y && \
